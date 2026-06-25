@@ -1,0 +1,179 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body { background: #F7F6F3; color: #0B1930; line-height: 1.6; }
+
+input, button, select, textarea { font-family: inherit; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* === LUXURY INPUT === */
+.lux-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #E8E6E1;
+  border-radius: 11px;
+  font-size: 14px;
+  color: #0B1930;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+}
+.lux-input:hover { border-color: #C49A3C; }
+.lux-input:focus {
+  border-color: #C49A3C;
+  box-shadow: 0 0 0 4px rgba(196, 154, 60, 0.1);
+}
+.lux-input::placeholder { color: #A8A29E; }
+
+/* === DARK INPUT (Staff Login) === */
+.lux-input-dark {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 11px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+  appearance: none;
+}
+.lux-input-dark:hover { border-color: rgba(196,154,60,0.4); }
+.lux-input-dark:focus {
+  border-color: rgba(196,154,60,0.6);
+  background: rgba(255,255,255,0.09);
+  box-shadow: 0 0 0 4px rgba(196,154,60,0.08);
+}
+.lux-input-dark::placeholder { color: rgba(255,255,255,0.3); }
+
+/* === LUXURY LABEL === */
+.lux-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 7px;
+}
+
+/* === GOLD BUTTON === */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 28px;
+  background: #C49A3C;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-gold:hover:not(:disabled) { background: #A67D2A; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(196,154,60,0.35); }
+.btn-gold:active:not(:disabled) { transform: translateY(0); }
+.btn-gold:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* === NAVY BUTTON === */
+.btn-navy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 28px;
+  background: #0B1930;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-navy:hover:not(:disabled) { background: #1A3057; transform: translateY(-1px); }
+.btn-navy:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* === GHOST BUTTON === */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  background: transparent;
+  color: #64748B;
+  border: 1.5px solid #E8E6E1;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-ghost:hover { border-color: #C49A3C; color: #C49A3C; background: rgba(196,154,60,0.04); }
+
+/* === EMERALD BUTTON (Staff) === */
+.btn-emerald {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 28px;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-emerald:hover:not(:disabled) { background: #047857; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(5,150,105,0.3); }
+.btn-emerald:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* === LUX CARD === */
+.lux-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid #F0EDE7;
+  box-shadow: 0 1px 3px rgba(11,25,48,0.04), 0 8px 32px rgba(11,25,48,0.06);
+}
+
+/* === STATUS BADGES === */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-green  { background: #ECFDF5; color: #059669; }
+.badge-blue   { background: #EFF6FF; color: #2563EB; }
+.badge-amber  { background: #FFFBEB; color: #D97706; }
+.badge-red    { background: #FEF2F2; color: #DC2626; }
+.badge-slate  { background: #F8FAFC; color: #64748B; }
+.badge-purple { background: #F5F3FF; color: #7C3AED; }
+
+/* === PAGE TITLE === */
+.page-title { font-size: 22px; font-weight: 800; color: #0B1930; line-height: 1.2; }
+.page-sub   { font-size: 13.5px; color: #64748B; margin-top: 3px; }

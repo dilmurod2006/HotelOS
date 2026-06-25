@@ -1,0 +1,30 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HotelOS.API/HotelOS.API.csproj" />
+    <Project Path="src/HotelOS.SharedKernel/HotelOS.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Housekeeping/">
+    <Project Path="src/Modules/Housekeeping/Housekeeping.Application/Housekeeping.Application.csproj" />
+    <Project Path="src/Modules/Housekeeping/Housekeeping.Domain/Housekeeping.Domain.csproj" />
+    <Project Path="src/Modules/Housekeeping/Housekeeping.Infrastructure/Housekeeping.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Maintenance/">
+    <Project Path="src/Modules/Maintenance/Maintenance.Application/Maintenance.Application.csproj" />
+    <Project Path="src/Modules/Maintenance/Maintenance.Domain/Maintenance.Domain.csproj" />
+    <Project Path="src/Modules/Maintenance/Maintenance.Infrastructure/Maintenance.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Reception/">
+    <Project Path="src/Modules/Reception/Reception.Application/Reception.Application.csproj" />
+    <Project Path="src/Modules/Reception/Reception.Domain/Reception.Domain.csproj" />
+    <Project Path="src/Modules/Reception/Reception.Infrastructure/Reception.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/RoomService/">
+    <Project Path="src/Modules/RoomService/RoomService.Application/RoomService.Application.csproj" />
+    <Project Path="src/Modules/RoomService/RoomService.Domain/RoomService.Domain.csproj" />
+    <Project Path="src/Modules/RoomService/RoomService.Infrastructure/RoomService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HotelOS.Tests/HotelOS.Tests.csproj" />
+  </Folder>
+</Solution>

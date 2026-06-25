@@ -1,2 +1,0 @@
-# HotelOS
-HotelOS

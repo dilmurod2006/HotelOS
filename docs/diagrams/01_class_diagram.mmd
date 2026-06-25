@@ -1,0 +1,503 @@
+classDiagram
+    direction TB
+
+    %% ════════════════════════════════════════════════
+    %% SHARED KERNEL
+    %% ════════════════════════════════════════════════
+
+    namespace SharedKernel {
+        class Entity {
+            <<abstract>>
+            +Guid Id
+            +DateTime CreatedAt
+            +DateTime UpdatedAt
+            +bool Equals(object obj)
+            +int GetHashCode()
+        }
+
+        class AggregateRoot {
+            <<abstract>>
+            -List~IDomainEvent~ _events
+            +IReadOnlyList~IDomainEvent~ DomainEvents
+            +AddDomainEvent(IDomainEvent event)
+            +ClearDomainEvents()
+        }
+
+        class ValueObject {
+            <<abstract>>
+            #GetEqualityComponents() IEnumerable~object~
+            +bool Equals(object obj)
+            +int GetHashCode()
+        }
+
+        class IDomainEvent {
+            <<interface>>
+            +Guid EventId
+            +DateTime OccurredOn
+        }
+
+        class Result~T~ {
+            +bool IsSuccess
+            +bool IsFailure
+            +T Value
+            +Error Error
+            +Success(T value) Result~T~$
+            +Failure(Error error) Result~T~$
+        }
+
+        class Error {
+            +string Code
+            +string Description
+            +Error None$
+            +Error NotFound$
+            +Error Conflict$
+            +Error Validation$
+        }
+    }
+
+    AggregateRoot --|> Entity : extends
+    Result~T~ --> Error : contains
+
+    %% ════════════════════════════════════════════════
+    %% ENUMERATIONS
+    %% ════════════════════════════════════════════════
+
+    namespace Enumerations {
+        class RoomStatus {
+            <<enumeration>>
+            Available
+            Occupied
+            NeedsHousekeeping
+            Maintenance
+            OutOfOrder
+        }
+
+        class RoomType {
+            <<enumeration>>
+            Standard
+            Deluxe
+            Suite
+            Presidential
+        }
+
+        class BookingStatus {
+            <<enumeration>>
+            Pending
+            Confirmed
+            CheckedIn
+            CheckedOut
+            Cancelled
+        }
+
+        class CleaningTaskStatus {
+            <<enumeration>>
+            Pending
+            InProgress
+            Completed
+        }
+
+        class CleaningPriority {
+            <<enumeration>>
+            Low
+            Medium
+            High
+            Urgent
+        }
+
+        class MaintenancePriority {
+            <<enumeration>>
+            Low
+            Medium
+            High
+            Critical
+        }
+
+        class MaintenanceStatus {
+            <<enumeration>>
+            Reported
+            InProgress
+            Resolved
+        }
+
+        class OrderStatus {
+            <<enumeration>>
+            Received
+            Preparing
+            OutForDelivery
+            Delivered
+        }
+    }
+
+    %% ════════════════════════════════════════════════
+    %% RECEPTION MODULE — Value Objects
+    %% ════════════════════════════════════════════════
+
+    namespace ReceptionValueObjects {
+        class RoomNumber {
+            <<ValueObject>>
+            +string Value
+            +Create(string value) Result~RoomNumber~$
+            #GetEqualityComponents() IEnumerable~object~
+        }
+
+        class Money {
+            <<ValueObject>>
+            +decimal Amount
+            +string Currency
+            +Create(decimal amount, string currency) Result~Money~$
+            +Add(Money other) Money
+            #GetEqualityComponents() IEnumerable~object~
+        }
+
+        class DateRange {
+            <<ValueObject>>
+            +DateOnly CheckIn
+            +DateOnly CheckOut
+            +int Nights
+            +Create(DateOnly checkIn, DateOnly checkOut) Result~DateRange~$
+            +Overlaps(DateRange other) bool
+            #GetEqualityComponents() IEnumerable~object~
+        }
+
+        class GuestName {
+            <<ValueObject>>
+            +string FirstName
+            +string LastName
+            +string FullName
+            +Create(string first, string last) Result~GuestName~$
+            #GetEqualityComponents() IEnumerable~object~
+        }
+
+        class Email {
+            <<ValueObject>>
+            +string Value
+            +Create(string value) Result~Email~$
+            #GetEqualityComponents() IEnumerable~object~
+        }
+
+        class PhoneNumber {
+            <<ValueObject>>
+            +string Value
+            +Create(string value) Result~PhoneNumber~$
+            #GetEqualityComponents() IEnumerable~object~
+        }
+    }
+
+    ValueObject <|-- RoomNumber
+    ValueObject <|-- Money
+    ValueObject <|-- DateRange
+    ValueObject <|-- GuestName
+    ValueObject <|-- Email
+    ValueObject <|-- PhoneNumber
+
+    %% ════════════════════════════════════════════════
+    %% RECEPTION MODULE — Aggregates
+    %% ════════════════════════════════════════════════
+
+    namespace ReceptionAggregates {
+        class Room {
+            +RoomNumber Number
+            +RoomType Type
+            +int Floor
+            +Money PricePerNight
+            +RoomStatus Status
+            +uint RowVersion
+            +Create(RoomNumber, RoomType, int, Money) Result~Room~$
+            +ChangeStatus(RoomStatus newStatus)
+            +MarkNeedsHousekeeping()
+            +MarkMaintenance()
+            +SetAvailable()
+        }
+
+        class Booking {
+            +Guid RoomId
+            +Guid GuestId
+            +DateRange Period
+            +Money TotalPrice
+            +BookingStatus Status
+            +DateTime ExpiresAt
+            +Create(Guid roomId, Guid guestId, DateRange, Money) Result~Booking~$
+            +Confirm()
+            +Cancel()
+            +CheckIn()
+            +CheckOut()
+        }
+
+        class Guest {
+            +GuestName Name
+            +Email Email
+            +PhoneNumber Phone
+            +Create(GuestName, Email, PhoneNumber) Result~Guest~$
+        }
+    }
+
+    AggregateRoot <|-- Room
+    AggregateRoot <|-- Booking
+    AggregateRoot <|-- Guest
+
+    Room --> RoomNumber : has
+    Room --> Money : priced by
+    Room --> RoomType
+    Room --> RoomStatus
+    Booking --> DateRange : period
+    Booking --> Money : totalPrice
+    Booking --> BookingStatus
+    Guest --> GuestName : name
+    Guest --> Email
+    Guest --> PhoneNumber
+
+    Booking "many" --> "1" Room : references
+    Booking "many" --> "1" Guest : made by
+
+    %% ════════════════════════════════════════════════
+    %% HOUSEKEEPING MODULE
+    %% ════════════════════════════════════════════════
+
+    namespace HousekeepingModule {
+        class CleaningTask {
+            +Guid RoomId
+            +string RoomNumber
+            +int Floor
+            +CleaningPriority Priority
+            +CleaningTaskStatus Status
+            +Guid AssignedCleanerId
+            +DateTime StartedAt
+            +DateTime CompletedAt
+            +Create(Guid roomId, string number, int floor, CleaningPriority) Result~CleaningTask~$
+            +Start(Guid cleanerId)
+            +Complete()
+        }
+
+        class CleaningCompletedEvent {
+            +Guid TaskId
+            +Guid RoomId
+            +string RoomNumber
+            +DateTime OccurredOn
+        }
+    }
+
+    AggregateRoot <|-- CleaningTask
+    CleaningTask --> CleaningPriority
+    CleaningTask --> CleaningTaskStatus
+    CleaningTask ..> CleaningCompletedEvent : raises
+    IDomainEvent <|.. CleaningCompletedEvent
+
+    %% ════════════════════════════════════════════════
+    %% MAINTENANCE MODULE
+    %% ════════════════════════════════════════════════
+
+    namespace MaintenanceModule {
+        class MaintenanceIssue {
+            +Guid RoomId
+            +string RoomNumber
+            +string Description
+            +MaintenancePriority Priority
+            +MaintenanceStatus Status
+            +string ResolutionNotes
+            +DateTime ReportedAt
+            +DateTime ResolvedAt
+            +Create(Guid, string, string, MaintenancePriority) Result~MaintenanceIssue~$
+            +StartWork()
+            +Resolve(string notes)
+        }
+    }
+
+    AggregateRoot <|-- MaintenanceIssue
+    MaintenanceIssue --> MaintenancePriority
+    MaintenanceIssue --> MaintenanceStatus
+
+    %% ════════════════════════════════════════════════
+    %% ROOM SERVICE MODULE
+    %% ════════════════════════════════════════════════
+
+    namespace RoomServiceModule {
+        class Order {
+            +Guid GuestId
+            +string RoomNumber
+            +List~OrderLineItem~ Items
+            +Money TotalAmount
+            +OrderStatus Status
+            +DateTime OrderedAt
+            +Create(Guid, string, List~OrderLineItem~) Result~Order~$
+            +AdvanceStatus()
+        }
+
+        class OrderLineItem {
+            +int MenuItemId
+            +string Name
+            +int Quantity
+            +Money UnitPrice
+            +Money LineTotal
+        }
+    }
+
+    AggregateRoot <|-- Order
+    Order "1" *-- "many" OrderLineItem : contains
+    Order --> OrderStatus
+    Order --> Money : totalAmount
+
+    %% ════════════════════════════════════════════════
+    %% REPOSITORY INTERFACES
+    %% ════════════════════════════════════════════════
+
+    namespace Repositories {
+        class IRoomRepository {
+            <<interface>>
+            +GetByIdAsync(Guid id) Task~Room~
+            +GetByNumberAsync(string num) Task~Room~
+            +GetAllAsync() Task~IReadOnlyList~Room~~
+            +GetAvailableAsync(DateRange) Task~IReadOnlyList~Room~~
+            +AddAsync(Room room) Task
+            +UpdateAsync(Room room) Task
+        }
+
+        class IBookingRepository {
+            <<interface>>
+            +GetByIdAsync(Guid id) Task~Booking~
+            +GetOverlappingAsync(Guid roomId, DateRange) Task~IReadOnlyList~Booking~~
+            +GetPendingExpiredAsync() Task~IReadOnlyList~Booking~~
+            +AddAsync(Booking booking) Task
+            +UpdateAsync(Booking booking) Task
+        }
+
+        class IGuestRepository {
+            <<interface>>
+            +GetByIdAsync(Guid id) Task~Guest~
+            +GetByEmailAsync(string email) Task~Guest~
+            +AddAsync(Guest guest) Task
+        }
+
+        class ICleaningTaskRepository {
+            <<interface>>
+            +GetByIdAsync(Guid id) Task~CleaningTask~
+            +GetAllAsync() Task~IReadOnlyList~CleaningTask~~
+            +GetByStatusAsync(CleaningTaskStatus) Task~IReadOnlyList~CleaningTask~~
+            +AddAsync(CleaningTask task) Task
+            +UpdateAsync(CleaningTask task) Task
+        }
+
+        class IMaintenanceIssueRepository {
+            <<interface>>
+            +GetByIdAsync(Guid id) Task~MaintenanceIssue~
+            +GetPriorityQueueAsync() Task~IReadOnlyList~MaintenanceIssue~~
+            +AddAsync(MaintenanceIssue issue) Task
+            +UpdateAsync(MaintenanceIssue issue) Task
+        }
+    }
+
+    IRoomRepository ..> Room : manages
+    IBookingRepository ..> Booking : manages
+    IGuestRepository ..> Guest : manages
+    ICleaningTaskRepository ..> CleaningTask : manages
+    IMaintenanceIssueRepository ..> MaintenanceIssue : manages
+
+    %% ════════════════════════════════════════════════
+    %% APPLICATION LAYER — CQRS
+    %% ════════════════════════════════════════════════
+
+    namespace ApplicationCQRS {
+        class ICommandHandler~TCommand~ {
+            <<interface>>
+            +HandleAsync(TCommand command) Task~Result~
+        }
+
+        class IQueryHandler~TQuery_TResult~ {
+            <<interface>>
+            +HandleAsync(TQuery query) Task~TResult~
+        }
+
+        class CreateBookingCommand {
+            +Guid GuestId
+            +Guid RoomId
+            +DateOnly CheckIn
+            +DateOnly CheckOut
+        }
+
+        class CreateBookingCommandHandler {
+            -IRoomRepository _rooms
+            -IBookingRepository _bookings
+            -IGuestRepository _guests
+            -IDistributedLock _lock
+            -IRedisCache _cache
+            -IHubContext~DashboardHub~ _hub
+            +HandleAsync(CreateBookingCommand) Task~Result~
+        }
+
+        class BookingDto {
+            +Guid Id
+            +Guid RoomId
+            +string RoomNumber
+            +DateOnly CheckIn
+            +DateOnly CheckOut
+            +decimal TotalPrice
+            +string Status
+        }
+    }
+
+    ICommandHandler~TCommand~ <|.. CreateBookingCommandHandler
+    CreateBookingCommandHandler --> IRoomRepository
+    CreateBookingCommandHandler --> IBookingRepository
+    CreateBookingCommandHandler ..> CreateBookingCommand : handles
+    CreateBookingCommandHandler ..> BookingDto : produces
+
+    %% ════════════════════════════════════════════════
+    %% INFRASTRUCTURE LAYER
+    %% ════════════════════════════════════════════════
+
+    namespace Infrastructure {
+        class HotelOsDbContext {
+            +DbSet~Room~ Rooms
+            +DbSet~Booking~ Bookings
+            +DbSet~Guest~ Guests
+            +DbSet~CleaningTask~ CleaningTasks
+            +DbSet~MaintenanceIssue~ MaintenanceIssues
+            +DbSet~Order~ Orders
+            +SaveChangesAsync() Task~int~
+        }
+
+        class IDistributedLock {
+            <<interface>>
+            +AcquireAsync(string resource, TimeSpan ttl, TimeSpan timeout) Task~ILockHandle~
+        }
+
+        class ILockHandle {
+            <<interface>>
+            +bool IsAcquired
+            +ReleaseAsync() Task
+        }
+
+        class RedLockDistributedLock {
+            -IDistributedLockFactory _factory
+            +AcquireAsync(string resource, TimeSpan ttl, TimeSpan timeout) Task~ILockHandle~
+        }
+
+        class IRedisCache {
+            <<interface>>
+            +GetAsync~T~(string key) Task~T~
+            +SetAsync~T~(string key, T value, TimeSpan ttl) Task
+            +RemoveAsync(string key) Task
+        }
+
+        class AutoReleaseBackgroundService {
+            -IServiceScopeFactory _scope
+            -TimeSpan _interval
+            +ExecuteAsync(CancellationToken ct) Task
+            -ReleaseExpiredBookingsAsync() Task
+        }
+
+        class DashboardHub {
+            +JoinDashboardGroup() Task
+            +NotifyRoomStatusChanged(Guid roomId, string oldStatus, string newStatus) Task
+            +NotifyBookingCreated(Guid roomId, string roomNumber) Task
+        }
+    }
+
+    IDistributedLock <|.. RedLockDistributedLock
+    IDistributedLock ..> ILockHandle : returns
+    CreateBookingCommandHandler --> IDistributedLock : acquires lock
+    CreateBookingCommandHandler --> IRedisCache : caches rooms
+    HotelOsDbContext ..> Room : persists
+    HotelOsDbContext ..> Booking : persists
+    HotelOsDbContext ..> Guest : persists
+    AutoReleaseBackgroundService --> IBookingRepository : finds expired
+    AutoReleaseBackgroundService --> IRoomRepository : releases room

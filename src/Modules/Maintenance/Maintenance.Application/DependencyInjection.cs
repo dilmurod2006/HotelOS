@@ -1,0 +1,15 @@
+using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Maintenance.Application;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddMaintenanceApplication(this IServiceCollection services)
+    {
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+        return services;
+    }
+}
